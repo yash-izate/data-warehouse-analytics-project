@@ -8,6 +8,8 @@ Script Purpose:
 	  Run this script to redefine the DDL structure of 'bronze' Tables
 ===============================================================================
 */
+Use DataWarehouse;
+go
 
 IF OBJECT_ID('bronze.crm_cust_info', 'U') IS NOT NULL
     DROP TABLE bronze.crm_cust_info;
