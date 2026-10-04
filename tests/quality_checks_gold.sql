@@ -49,3 +49,79 @@ ON c.customer_key = f.customer_key
 LEFT JOIN gold.dim_products p
 ON p.product_key = f.product_key
 WHERE p.product_key IS NULL OR c.customer_key IS NULL  
+
+USE DataWarehouse;
+GO
+
+-- 1. Compare Silver sales rows with Gold fact rows
+SELECT
+    (SELECT COUNT_BIG(*)
+     FROM silver.crm_sales_details) AS SilverSalesRows,
+
+    (SELECT COUNT_BIG(*)
+     FROM gold.fact_sales) AS GoldFactRows;
+
+-- 2. Compare total sales amounts
+SELECT
+    (SELECT SUM(sls_sales)
+     FROM silver.crm_sales_details) AS SilverTotalSales,
+
+    (SELECT SUM(sales_amount)
+     FROM gold.fact_sales) AS GoldTotalSales;
+
+-- 3. Check for missing dimension keys
+SELECT
+    SUM(CASE WHEN customer_key IS NULL THEN 1 ELSE 0 END)
+        AS MissingCustomerKeys,
+    SUM(CASE WHEN product_key IS NULL THEN 1 ELSE 0 END)
+        AS MissingProductKeys
+FROM gold.fact_sales;
+
+-- 4. Inspect sample customer records
+SELECT TOP 10 *
+FROM gold.dim_customers;
+
+-- 5. Inspect sample product records
+SELECT TOP 10 *
+FROM gold.dim_products;
+
+-- 6. Inspect sample sales records
+SELECT TOP 10 *
+FROM gold.fact_sales;
+GO
+
+-- 7. Monthly sales trend
+USE DataWarehouse;
+GO
+
+SELECT
+    YEAR(order_date) AS SalesYear,
+    MONTH(order_date) AS SalesMonth,
+    DATETRUNC(MONTH, order_date) AS MonthStart,
+    SUM(sales_amount) AS TotalSales,
+    SUM(quantity) AS TotalQuantity,
+    COUNT(DISTINCT order_number) AS TotalOrders
+FROM gold.fact_sales
+WHERE order_date IS NOT NULL
+GROUP BY DATETRUNC(MONTH, order_date),
+         YEAR(order_date),
+         MONTH(order_date)
+ORDER BY MonthStart;
+GO
+
+-- 8. Top 10 products by revenue
+SELECT TOP 10
+    p.product_number,
+    p.product_name,
+    p.category,
+    SUM(f.sales_amount) AS TotalRevenue,
+    SUM(f.quantity) AS UnitsSold
+FROM gold.fact_sales f
+JOIN gold.dim_products p
+    ON f.product_key = p.product_key
+GROUP BY
+    p.product_number,
+    p.product_name,
+    p.category
+ORDER BY TotalRevenue DESC;
+GO
