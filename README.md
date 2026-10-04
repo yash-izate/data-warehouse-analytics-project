@@ -204,7 +204,7 @@ flowchart TD
 
 The following reference diagram summarizes extraction, transformation, and loading methods relevant to the project.
 
-![ETL methods diagram](docs/diagrams/ETL.png)
+![ETL methods diagram](docs/ETL.png)
 
 ### Transformation summary
 
