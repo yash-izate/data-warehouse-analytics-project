@@ -25,6 +25,7 @@ The project follows a layered data architecture and covers data ingestion, trans
 The warehouse is organized into three logical layers.
 <img width="874" height="531" alt="image" src="https://github.com/user-attachments/assets/ac1a4fc8-d55a-488f-96e9-20549ecc4671" />
 
+<img width="1057" height="767" alt="image" src="https://github.com/user-attachments/assets/3dbd803e-d589-45b4-873c-98ed24747cf2" />
 
 ### Bronze — Raw Data
 
