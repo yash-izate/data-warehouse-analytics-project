@@ -187,32 +187,67 @@ Surrogate keys (`customer_key`, `product_key`) are generated using `ROW_NUMBER()
 
 ## ETL Workflow
 
-The data loading and transformation flow is orchestrated by the following sequence:
+``` mermaid
+flowchart TD
+    A([Start]) --> B["Create database, schemas, and tables"]
+    B --> C["Execute bronze.load_bronze"]
+    C --> D["Validate Bronze ingestion"]
+    D --> E["Execute silver.load_silver"]
+    E --> F["Run Silver quality checks"]
+    F --> G["Create Gold views"]
+    G --> H["Run Gold quality and relationship checks"]
+    H --> I["Run analytical queries"]
+    I --> J([Ready for analysis])
+```
 
-1. **Initial Setup:** Create the `DataWarehouse` database and `bronze`, `silver`, `gold` schemas.  
-2. **Bronze Load:** Run `bronze.load_bronze` to load raw CSV files into Bronze tables.  
-3. **Silver Load:** Run `silver.load_silver` to transform Bronze into Silver tables.  
-4. **Quality Checks:** Execute custom SQL scripts to validate Silver data (unique keys, valid dates, matching sales logic, etc.).  
-5. **Gold Views:** Create or update the `gold.dim_*` and `gold.fact_sales` views.  
-6. **Final Validation:** Compare row counts and totals between Silver and Gold; run referential integrity checks.  
 
-After initial setup, these procedures can be re-run whenever source CSVs are updated.
+### ETL Methods Reference Diagram
 
-<!-- INSERT ORIGINAL ETL METHODS DIAGRAM HERE -->
-<!-- ![ETL Workflow](docs/diagrams/ETL.png) -->
+The following reference diagram summarizes extraction, transformation, and loading methods relevant to the project.
 
-## Data Quality and Validation
+![ETL methods diagram](docs/ETL.png)
 
-Robust data quality checks are integral to the ETL process. Examples of checks performed:
+### Transformation summary
 
-- **Unique Keys:** No duplicate `cst_id` in customers, no duplicate `prd_id` in products.  
-- **Referential Integrity:** Every sale record matches a customer and a product in Silver.  
-- **Null/Missing Values:** Key fields (IDs, dates, amounts) are not unexpectedly NULL.  
-- **Date Validity:** Birthdates are realistic; order/shipment dates are in logical order.  
-- **Data Consistency:** Sales amount equals `quantity * price`; product start dates precede end dates.  
-- **Text Standardization:** Categorical fields (gender, marital status, country) use consistent codes.  
+1.  Load the six CSV files into Bronze tables.
+2.  Clean and standardize customer names, marital status, gender,
+    identifiers, and country values.
+3.  Handle duplicate customer records.
+4.  Derive product category and product keys and calculate product
+    validity end dates with `LEAD()`.
+5.  Convert sales date values and apply the project's sales and price
+    correction rules.
+6.  Combine CRM and ERP data in Gold dimensions.
+7.  Connect sales transactions to customer and product dimensions.
+8.  Run quality checks and analytical queries.
 
-When issues are detected, data transformations are adjusted (for example, converting impossible dates to `NULL`, or correcting sales figures). In our case, the automated checks returned **no critical errors** on the sample data, indicating the pipeline logic is sound for the given sources.
+## Data Quality and Results
+
+Quality checks cover: - Duplicate or null customer identifiers. -
+Unwanted spaces and unexpected categorical values. - Null or invalid
+product costs. - Invalid product date ranges. - Invalid sales dates and
+date ordering. - Sales, quantity, and price consistency. - Invalid or
+future customer birthdates. - Duplicate dimension surrogate keys. -
+Missing fact-to-dimension matches.
+
+The quality-check queries run during development returned no rows for
+the error conditions tested. This indicates those specific checks passed
+for the tested data, but does not guarantee every possible issue has
+been ruled out.
+
+Silver row counts recorded during development:
+
+  Silver table                     Rows
+  ---------------------------- --------
+  `silver.crm_cust_info`         18,484
+  `silver.crm_prd_info`             397
+  `silver.crm_sales_details`     60,398
+  `silver.erp_loc_a101`          18,484
+  `silver.erp_cust_az12`         18,483
+  `silver.erp_px_cat_g1v2`           37
+
+Counts represent the dataset at the time of validation and may change if
+the source files change.
 
 ## Analytics Use Cases
 
