@@ -23,20 +23,22 @@ The project follows a layered data architecture and covers data ingestion, trans
 ## Data Architecture
 
 The warehouse is organized into three logical layers.
-<img width="874" height="531" alt="image" src="https://github.com/user-attachments/assets/ac1a4fc8-d55a-488f-96e9-20549ecc4671" />
-
 
 ### Bronze — Raw Data
 
 The Bronze layer stores data ingested from the source CSV files with minimal transformation. Keeping the raw data available makes it easier to inspect source values and investigate issues found in later stages.
+<img width="874" height="531" alt="image" src="https://github.com/user-attachments/assets/ac1a4fc8-d55a-488f-96e9-20549ecc4671" />
 
 ### Silver — Cleaned and Integrated Data
 
 The Silver layer prepares data for analysis. This stage is intended to address issues such as inconsistent formats, unsuitable data types, duplicate records, and other data quality problems identified during source inspection. Related ERP and CRM data is integrated where appropriate.
+<img width="1057" height="767" alt="image" src="https://github.com/user-attachments/assets/3dbd803e-d589-45b4-873c-98ed24747cf2" />
 
 ### Gold — Analytical Data Model
 
 The Gold layer contains business-ready data organized for reporting and analytics. The planned model uses fact and dimension tables arranged as a star schema, supporting queries about sales, customers, and products.
+<img width="1347" height="389" alt="image" src="https://github.com/user-attachments/assets/95cd20f8-4325-42b1-aae5-71ec86971b5b" />
+
 
 > Architecture diagrams and implementation details will be added as the project develops.
 
